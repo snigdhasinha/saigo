@@ -15,25 +15,45 @@ func check(e error) {
 	}
 }
 
-type Pair struct {
-	Key   string
-	Value int
+type WordCount struct {
+	Word   string
+	Count  int
 }
-type PairList []Pair
+type WordList []WordCount
 
-func (p PairList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-func (p PairList) Len() int           { return len(p) }
-func (p PairList) Less(i, j int) bool { return p[i].Value < p[j].Value }
+func (p WordList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p WordList) Len() int           { return len(p) }
+func (p WordList) Less(i, j int) bool { return p[i].Count < p[j].Count }
 
-func sortByWordCount(wordFreq map[string]int) PairList {
-	p := make(PairList, len(wordFreq))
-	i := 0
-	for k, v := range wordFreq {
-		p[i] = Pair{k, v}
-		i++
+func sortByWordCount(wordFreq map[string]int) WordList {
+	//list := make(WordList, len(wordFreq))
+	list := make(WordList, 0)
+	for word, count := range wordFreq {
+                entry := WordCount{word, count}
+		list = append(list, entry)
 	}
-	sort.Sort(sort.Reverse(p))
-	return p
+	sort.Sort(sort.Reverse(list))
+	return list
+}
+
+
+func countWords(text string) WordList {
+	// Run the regular expression on string to replace everything but
+	// alpha-numericals with space
+	var regExp = regexp.MustCompile("[[:^alpha:]]")
+	cleanedTxt := regExp.ReplaceAllString(text, " ")
+
+	// Build the Map(string, int) for this string
+	cleanedTxt = strings.ToLower(cleanedTxt)
+	wordArr := strings.Fields(cleanedTxt)
+	wordFreq := make(map[string]int)
+	for _, v := range wordArr {
+		wordFreq[v] = wordFreq[v] + 1
+	}
+
+	//Sort the map on Value
+	sortedByCount := sortByWordCount(wordFreq)
+        return sortedByCount
 }
 
 func main() {
@@ -48,22 +68,9 @@ func main() {
 	check(err)
 	txtData := string(dat)
 
-	// Run the regular expression on string to replace everything but
-	// alpha-numericals with space
-	var regExp = regexp.MustCompile("[[:^alpha:]]")
-	cleanedTxt := regExp.ReplaceAllString(txtData, " ")
+        sortedByCount := countWords(txtData)
 
-	// Build the Map(string, int) for this string
-	cleanedTxt = strings.ToLower(cleanedTxt)
-	wordArr := strings.Fields(cleanedTxt)
-	wordFreq := make(map[string]int)
-	for _, v := range wordArr {
-		wordFreq[v] = wordFreq[v] + 1
-	}
-
-	//Sort the map on Value
-	sortedByCount := sortByWordCount(wordFreq)
 	for _, pl := range sortedByCount {
-		fmt.Println(pl.Value, pl.Key)
+		fmt.Println(pl.Count, pl.Word)
 	}
 }
